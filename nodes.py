@@ -42,8 +42,8 @@ class LoadBAGELModel:
             }
         }
 
-    RETURN_TYPES = ("MODEL",)
-    RETURN_NAMES = ("model",)
+    RETURN_TYPES = ("MODEL", "VAEMODEL", "TOKENIZER", "VAETRANSFORM", "VITTRANSFORM", "TOKENIDS",)
+    RETURN_NAMES = ("model", "vae_model", "tokenizer", "vae_transform", "vit_transform", "new_token_ids",)
     FUNCTION = "load_model"
     CATEGORY = "BAGEL"
 
@@ -134,8 +134,8 @@ class LoadBAGELModel:
         
         model = model.eval()
         print('Model loaded')
-        
-        return (model,)
+
+        return (model, vae_model, tokenizer, vae_transform, vit_transform, new_token_ids,)
 
 
 class Prompt:
