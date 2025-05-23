@@ -133,3 +133,26 @@ class LoadBAGELModel:
         print('Model loaded')
         
         return (model,)
+
+
+class Prompt:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "text": ("STRING", {
+                    "default": "A female cosplayer portraying an ethereal fairy or elf, wearing a flowing dress made of delicate fabrics in soft, mystical colors like emerald green and silver. She has pointed ears, a gentle, enchanting expression, and her outfit is adorned with sparkling jewels and intricate patterns. The background is a magical forest with glowing plants, mystical creatures, and a serene atmosphere.",
+                    "multiline": True
+                }),
+            }
+        }
+
+    RETURN_TYPES = ("PROMPT",)
+    RETURN_NAMES = ("prompt",)
+    FUNCTION = "input_text"
+    CATEGORY = "BAGEL"
+
+    def input_text(self, text):
+        prompt = text
+        return (prompt,)
+
