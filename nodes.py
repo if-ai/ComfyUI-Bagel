@@ -28,6 +28,7 @@ from modeling.bagel import (
 from modeling.qwen2 import Qwen2Tokenizer
 from modeling.bagel.qwen2_navit import NaiveCache
 from modeling.autoencoder import load_ae
+from inferencer import InterleaveInferencer
 
 
 class LoadBAGELModel:
@@ -156,3 +157,66 @@ class Prompt:
         prompt = text
         return (prompt,)
 
+
+class ImageGeneration:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "task": ("STRING", {"default": "t2v-14B"}),
+                "ckpt_dir": ("MODEL",),
+                "prompt": ("PROMPT",),
+                "size": ("STRING", {"default": "1280*720"}),
+                "frame_num": ("INT", {"default": 81}),
+                "ulysses_size": ("INT", {"default": 4}),
+                "ring_size": ("INT", {"default": 1}),
+                "base_seed": ("INT", {"default": "42"}),
+                "sample_solver": ("STRING", {"default": ['unipc', 'dpm++']}),
+                "sample_steps": ("INT", {"default": 50}),
+                "sample_shift": ("FLOAT", {"default": 5}),
+                "sample_guide_scale": ("FLOAT", {"default": 5.0}),
+            }
+        }
+
+    RETURN_TYPES = ("IMAGE",)
+    RETURN_NAMES = ("image",)
+    FUNCTION = "generate"
+    CATEGORY = "BAGEL"
+
+    def generate(self, task, size, frame_num, ckpt_dir, ulysses_size, ring_size, prompt, 
+                base_seed, sample_solver, sample_steps, sample_shift, sample_guide_scale):
+
+        offload_model = None
+        inferencer = InterleaveInferencer(
+            model=model, 
+            vae_model=vae_model, 
+            tokenizer=tokenizer, 
+            vae_transform=vae_transform, 
+            vit_transform=vit_transform, 
+            new_token_ids=new_token_ids
+        )
+
+        seed = 42
+        random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed(seed)
+            torch.cuda.manual_seed_all(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+
+        inference_hyper=dict(
+            cfg_text_scale=4.0,
+            cfg_img_scale=1.0,
+            cfg_interval=[0.4, 1.0],
+            timestep_shift=3.0,
+            num_timesteps=50,
+            cfg_renorm_min=1.0,
+            cfg_renorm_type="global",
+        )
+
+        output_dict = inferencer(text=prompt, **inference_hyper)
+        image = output_dict['image']
+                    
+        return (image,)
