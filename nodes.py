@@ -14,6 +14,8 @@ from typing import (
 )
 import requests
 from io import BytesIO
+import random
+import numpy as np
 
 from PIL import Image
 import torch
@@ -142,7 +144,7 @@ class Prompt:
         return {
             "required": {
                 "text": ("STRING", {
-                    "default": "A female cosplayer portraying an ethereal fairy or elf, wearing a flowing dress made of delicate fabrics in soft, mystical colors like emerald green and silver. She has pointed ears, a gentle, enchanting expression, and her outfit is adorned with sparkling jewels and intricate patterns. The background is a magical forest with glowing plants, mystical creatures, and a serene atmosphere.",
+                    "default": "a car made of small cars",
                     "multiline": True
                 }),
             }
