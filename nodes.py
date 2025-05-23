@@ -165,18 +165,19 @@ class ImageGeneration:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "task": ("STRING", {"default": "t2v-14B"}),
-                "ckpt_dir": ("MODEL",),
+                "model": ("MODEL",),
+                "vae_model": ("VAEMODEL",),
+                "tokenizer": ("TOKENIZER",),
+                "vae_transform": ("VAETRANSFORM",),
+                "vit_transform": ("VITTRANSFORM",),
+                "new_token_ids": ("TOKENIDS",),
                 "prompt": ("PROMPT",),
-                "size": ("STRING", {"default": "1280*720"}),
-                "frame_num": ("INT", {"default": 81}),
-                "ulysses_size": ("INT", {"default": 4}),
-                "ring_size": ("INT", {"default": 1}),
-                "base_seed": ("INT", {"default": "42"}),
-                "sample_solver": ("STRING", {"default": ['unipc', 'dpm++']}),
-                "sample_steps": ("INT", {"default": 50}),
-                "sample_shift": ("FLOAT", {"default": 5}),
-                "sample_guide_scale": ("FLOAT", {"default": 5.0}),
+                "seed": ("INT", {"default": 42}),
+                "cfg_text_scale": ("FLOAT", {"default": 4.0}),
+                "cfg_img_scale": ("FLOAT", {"default": 1.0}),
+                "timestep_shift": ("FLOAT", {"default": 3.0}),
+                "num_timesteps": ("INT", {"default": 50}),
+                "cfg_renorm_min": ("FLOAT", {"default": 1.0}),
             }
         }
 
@@ -185,10 +186,9 @@ class ImageGeneration:
     FUNCTION = "generate"
     CATEGORY = "BAGEL"
 
-    def generate(self, task, size, frame_num, ckpt_dir, ulysses_size, ring_size, prompt, 
-                base_seed, sample_solver, sample_steps, sample_shift, sample_guide_scale):
+    def generate(self, model, vae_model, tokenizer, vae_transform, vit_transform, new_token_ids, prompt, 
+                seed, cfg_text_scale, cfg_img_scale, timestep_shift, num_timesteps, cfg_renorm_min):
 
-        offload_model = None
         inferencer = InterleaveInferencer(
             model=model, 
             vae_model=vae_model, 
@@ -198,7 +198,6 @@ class ImageGeneration:
             new_token_ids=new_token_ids
         )
 
-        seed = 42
         random.seed(seed)
         np.random.seed(seed)
         torch.manual_seed(seed)
@@ -209,12 +208,12 @@ class ImageGeneration:
         torch.backends.cudnn.benchmark = False
 
         inference_hyper=dict(
-            cfg_text_scale=4.0,
-            cfg_img_scale=1.0,
+            cfg_text_scale=cfg_text_scale,
+            cfg_img_scale=cfg_img_scale,
             cfg_interval=[0.4, 1.0],
-            timestep_shift=3.0,
-            num_timesteps=50,
-            cfg_renorm_min=1.0,
+            timestep_shift=timestep_shift,
+            num_timesteps=num_timesteps,
+            cfg_renorm_min=cfg_renorm_min,
             cfg_renorm_type="global",
         )
 
